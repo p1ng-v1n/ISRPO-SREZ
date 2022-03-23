@@ -14,9 +14,10 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Text.Json;
-using static Srez.Data;
+
 using Word = Microsoft.Office.Interop.Word;
 using Excel = Microsoft.Office.Interop.Excel;
+using Srez.Models;
 
 namespace Srez
 {
@@ -33,23 +34,50 @@ namespace Srez
         
         private  async void BtnGetData_Click(object sender, RoutedEventArgs e)
         {
-            using (HttpClient httpClient = new HttpClient { BaseAddress = new Uri(Properties.Settings.Default.BaseAddress) })
+            if (DpDateStart.SelectedDate != null && DpDateEnd.SelectedDate != null)
             {
-                
-                var content = new StringContent("", Encoding.UTF8, "application/json");
-                HttpResponseMessage httpResponseMessage = await httpClient.PostAsync($"/api/Sale?dateStart={Convert.ToDateTime(DpDateStart.SelectedDate).ToString("yyyy-MM-dd")}&dateEnd={Convert.ToDateTime( DpDateEnd.SelectedDate).ToString("yyyy-MM-dd")}",content);
-                string data = httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                sales = JsonSerializer.Deserialize<List<Sale>>(data);
-                DgSale.ItemsSource = sales;
-                
+                if (DpDateStart.SelectedDate.Value.Date > DateTime.Now.Date || DpDateEnd.SelectedDate.Value.Date > DateTime.Now.Date)
+                {
+                    MessageBox.Show("Дата не может быть больше текущей");
+                    return;
+                }
+                if (DpDateEnd.SelectedDate.Value.Date < DpDateStart.SelectedDate.Value.Date)
+                {
+                    MessageBox.Show("Дата окончания не может быть меньше даты начала");
+                    return;
+                }
+                try
+                {
+                    using (HttpClient httpClient = new HttpClient { BaseAddress = new Uri(Properties.Settings.Default.BaseAddress) })
+                    {
 
+                        var content = new StringContent("", Encoding.UTF8, "application/json");
+                        HttpResponseMessage httpResponseMessage = await httpClient.PostAsync($"/api/Sale?dateStart={Convert.ToDateTime(DpDateStart.SelectedDate).ToString("yyyy-MM-dd")}&dateEnd={Convert.ToDateTime(DpDateEnd.SelectedDate).ToString("yyyy-MM-dd")}", content);
+                        string data = httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                        sales = JsonSerializer.Deserialize<List<Sale>>(data);
+                        DgSale.ItemsSource = sales;
+
+                    }
+                }
+                catch (Exception)
+                {
+
+                    MessageBox.Show("Сервер недоступен!");
+                }
+               
             }
+            else { MessageBox.Show("Выберите даты!"); }
+
         }
 
    
 
        
-
+        /// <summary>
+        /// Метод для формирования чека в формате .docx и .pdf
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void BtnCheque_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -104,6 +132,7 @@ namespace Srez
                     wDoc.Close();
                     MessageBox.Show("Чек сформирован");
                 }
+                else { MessageBox.Show("Выберите клиента"); return; }
                
             }
             catch (Exception ex)
@@ -112,7 +141,11 @@ namespace Srez
                 MessageBox.Show($"Ошибка, выберите клиента");
             }
         }
-
+        /// <summary>
+        /// Метод для формирование
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void BtnChequeExcel_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -152,7 +185,8 @@ namespace Srez
                     MessageBox.Show("Файл сохранен!");
                     excelApp.Quit();
                 }
-                  
+                else { MessageBox.Show("Выберите клиента"); return; }
+
             }
             catch (Exception ex)
             {
@@ -164,56 +198,61 @@ namespace Srez
         {
             try
             {
-                Word._Application wApp = new Word.Application();
-                Word._Document wDoc = wApp.Documents.Add();
-                wApp.Visible = false;
-                wDoc.Activate();
-                foreach (var item in sales)
+                if (sales.Count() != 0)
                 {
-                    float cost = 0;
-                    var ClientParagraph = wDoc.Content.Paragraphs.Add();
-                    ClientParagraph.Range.Text = $"Фамилия:\t{item.client.lastName}\n" +
-                        $"Имя:\t{item.client.firstName}\n" +
-                        $"Отчество:\t{item.client.patronymic}\n";
-                    Word.Table wTable = wDoc.Tables.Add((Word.Range)ClientParagraph.Range,
-                        item.telephones.Length + 1, 6, Word.WdDefaultTableBehavior.wdWord9TableBehavior);
-                    wTable.Cell(1, 1).Range.Text = "Артикул";
-                    wTable.Cell(1, 1).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
-                    wTable.Cell(1, 2).Range.Text = "Наименование";
-                    wTable.Cell(1, 2).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
-                    wTable.Cell(1, 3).Range.Text = "Категория";
-                    wTable.Cell(1, 3).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
-                    wTable.Cell(1, 4).Range.Text = "Количество";
-                    wTable.Cell(1, 4).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
-                    wTable.Cell(1, 5).Range.Text = "Цена";
-                    wTable.Cell(1, 5).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
-                    wTable.Cell(1, 6).Range.Text = "Производитель";
-                    wTable.Cell(1, 6).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
-                    int countRow = 2;
-                    foreach (var telephone in item.telephones)
+                    Word._Application wApp = new Word.Application();
+                    Word._Document wDoc = wApp.Documents.Add();
+                    wApp.Visible = false;
+                    wDoc.Activate();
+                    foreach (var item in sales)
                     {
-                        wTable.Cell(countRow, 1).Range.Text = telephone.articul.ToString();
-                        wTable.Cell(countRow, 1).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
-                        wTable.Cell(countRow, 2).Range.Text = telephone.nameTelephone.ToString();
-                        wTable.Cell(countRow, 2).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
-                        wTable.Cell(countRow, 3).Range.Text = telephone.category.ToString();
-                        wTable.Cell(countRow, 3).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
-                        wTable.Cell(countRow, 4).Range.Text = telephone.count.ToString();
-                        wTable.Cell(countRow, 4).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
-                        wTable.Cell(countRow, 5).Range.Text = telephone.cost.ToString();
-                        wTable.Cell(countRow, 5).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
-                        wTable.Cell(countRow, 6).Range.Text = telephone.manufacturer.ToString();
-                        wTable.Cell(countRow, 6).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
-                        cost += telephone.cost * telephone.count;
-                        countRow++;
+                        float cost = 0;
+                        var ClientParagraph = wDoc.Content.Paragraphs.Add();
+                        ClientParagraph.Range.Text = $"Фамилия:\t{item.client.lastName}\n" +
+                            $"Имя:\t{item.client.firstName}\n" +
+                            $"Отчество:\t{item.client.patronymic}\n";
+                        Word.Table wTable = wDoc.Tables.Add((Word.Range)ClientParagraph.Range,
+                            item.telephones.Length + 1, 6, Word.WdDefaultTableBehavior.wdWord9TableBehavior);
+                        wTable.Cell(1, 1).Range.Text = "Артикул";
+                        wTable.Cell(1, 1).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                        wTable.Cell(1, 2).Range.Text = "Наименование";
+                        wTable.Cell(1, 2).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                        wTable.Cell(1, 3).Range.Text = "Категория";
+                        wTable.Cell(1, 3).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                        wTable.Cell(1, 4).Range.Text = "Количество";
+                        wTable.Cell(1, 4).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                        wTable.Cell(1, 5).Range.Text = "Цена";
+                        wTable.Cell(1, 5).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                        wTable.Cell(1, 6).Range.Text = "Производитель";
+                        wTable.Cell(1, 6).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                        int countRow = 2;
+                        foreach (var telephone in item.telephones)
+                        {
+                            wTable.Cell(countRow, 1).Range.Text = telephone.articul.ToString();
+                            wTable.Cell(countRow, 1).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                            wTable.Cell(countRow, 2).Range.Text = telephone.nameTelephone.ToString();
+                            wTable.Cell(countRow, 2).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                            wTable.Cell(countRow, 3).Range.Text = telephone.category.ToString();
+                            wTable.Cell(countRow, 3).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                            wTable.Cell(countRow, 4).Range.Text = telephone.count.ToString();
+                            wTable.Cell(countRow, 4).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                            wTable.Cell(countRow, 5).Range.Text = telephone.cost.ToString();
+                            wTable.Cell(countRow, 5).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                            wTable.Cell(countRow, 6).Range.Text = telephone.manufacturer.ToString();
+                            wTable.Cell(countRow, 6).Range.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                            cost += telephone.cost * telephone.count;
+                            countRow++;
+                        }
+                        var CostParagraph = wDoc.Content.Paragraphs.Add();
+                        CostParagraph.Range.Text = $"Стоимость:\t{cost}\n";
                     }
-                    var CostParagraph = wDoc.Content.Paragraphs.Add();
-                    CostParagraph.Range.Text = $"Стоимость:\t{cost}\n";
+                    wDoc.SaveAs2($@"{Environment.CurrentDirectory}\2.docx");
+                    wDoc.SaveAs2($@"{Environment.CurrentDirectory}\2.pdf", Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatPDF);
+                    MessageBox.Show("Файл сформирован");
+                    wDoc.Close();
                 }
-                wDoc.SaveAs2($@"{Environment.CurrentDirectory}\2.docx");
-                wDoc.SaveAs2($@"{Environment.CurrentDirectory}\2.pdf", Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatPDF);
-                MessageBox.Show("Файл сформирован");
-                wDoc.Close();
+                else { MessageBox.Show("Список пустой!"); }
+              
             }
             catch (Exception ex)
             {
@@ -225,37 +264,42 @@ namespace Srez
 
         private void CbiBrand_Selected(object sender, RoutedEventArgs e)
         {
-
-            List<string> name = new List<string>();
-            List<double> countsale = new List<double>();
-            int count = 0;
-            foreach (var item in sales)
+            if (sales.Count() != 0)
             {
-
-                foreach (var telephone in item.telephones)
+                List<string> name = new List<string>();
+                List<double> countSale = new List<double>();
+                int count = 0;
+                foreach (var item in sales)
                 {
-                    if (!name.Contains(telephone.manufacturer))
+
+                    foreach (var telephone in item.telephones)
                     {
-                        name.Add(telephone.manufacturer);
-                        countsale.Add(telephone.count * telephone.cost);
+                        if (!name.Contains(telephone.manufacturer))
+                        {
+                            name.Add(telephone.manufacturer);
+                            countSale.Add(telephone.count * telephone.cost);
+                        }
+                        else
+                        {
+                            var x = countSale.ElementAt(name.IndexOf(telephone.manufacturer));
+                            x += telephone.count * telephone.cost;
+                        }
                     }
-                    else
-                    {
-                        var x = countsale.ElementAt(name.IndexOf(telephone.manufacturer));
-                        x += telephone.count * telephone.cost;
-                    }
+
                 }
+                var pie = PieChart.Plot.AddPie(countSale.ToArray());
+                pie.SliceLabels = name.ToArray();
+                pie.ShowPercentages = true;
+                pie.ShowValues = true;
+                pie.ShowLabels = true;
+                PieChart.Plot.Legend();
+                PieChart.Refresh();
+                GridChartLine.Visibility = Visibility.Collapsed;
+                GridChartPie.Visibility = Visibility.Visible;
 
             }
-            var pie = PieChart.Plot.AddPie(countsale.ToArray());
-            pie.SliceLabels = name.ToArray();
-            pie.ShowPercentages = true;
-            pie.ShowValues = true;
-            pie.ShowLabels = true;
-            PieChart.Plot.Legend();
-            PieChart.Refresh();
-            GridChartLine.Visibility = Visibility.Collapsed;
-            GridChartPie.Visibility = Visibility.Visible;
+            else { MessageBox.Show("Список пустой!"); }
+
 
         }
 
@@ -266,15 +310,18 @@ namespace Srez
             DateTime? dateStart = DpDateStart.SelectedDate;
             if (dateStart == null)
             {
+                MessageBox.Show("Список пустой");
                 return;
             }
             DateTime? dateEnd = DpDateEnd.SelectedDate;
             if (dateEnd == null)
             {
+                MessageBox.Show("Список пустой");
                 return;
             }
             if (sales.Count == 0 || sales == null)
             {
+                MessageBox.Show("Список пустой");
                 return;
             }
             Excel.Application excelApp = new Excel.Application();
@@ -294,25 +341,25 @@ namespace Srez
                 sheet.Cells[3, 4] = "Количество";
                 sheet.Cells[3, 5] = "Цена";
                 sheet.Cells[3, 6] = "Сумма";
-                int countrow = 4;
+                int countRow = 4;
                 foreach (var item in sales)
                 {
-                    sheet.Cells[countrow, 1] = item.dateSale;
-                    sheet.Cells[countrow, 2] = item.client.fullname;
+                    sheet.Cells[countRow, 1] = item.dateSale;
+                    sheet.Cells[countRow, 2] = item.client.fullname;
                     foreach (var item2 in item.telephones)
                     {
                         
                         
                         
-                        sheet.Cells[countrow, 3] = item2.articul;
-                        sheet.Cells[countrow, 4] = item2.count;
-                        sheet.Cells[countrow, 5] = item2.cost;
-                        sheet.Cells[countrow, 6] = item2.cost * item2.count;
-                        countrow++;
+                        sheet.Cells[countRow, 3] = item2.articul;
+                        sheet.Cells[countRow, 4] = item2.count;
+                        sheet.Cells[countRow, 5] = item2.cost;
+                        sheet.Cells[countRow, 6] = item2.cost * item2.count;
+                        countRow++;
                     }
                 }
-                sheet.Cells[countrow, 4] = "Итого";
-                sheet.Cells[countrow, 5].Formula = $"=SUM(F3:F{countrow - 1} )";
+                sheet.Cells[countRow, 4] = "Итого";
+                sheet.Cells[countRow, 5].Formula = $"=SUM(F3:F{countRow - 1} )";
                 sheet.SaveAs($@"{ Environment.CurrentDirectory}\12.xlsx");
                 MessageBox.Show("Файл сохранен!");
                 excelApp.Quit();
@@ -325,23 +372,28 @@ namespace Srez
 
         private void CbiSales_Selected(object sender, RoutedEventArgs e)
         {
-            int count = (DpDateEnd.SelectedDate.Value.Date - DpDateStart.SelectedDate.Value.Date).Days+1;
-            double[] countDate = new double[count];
-            DateTime[] dates = new DateTime[count];
-            dates[0] = DpDateStart.SelectedDate.Value.Date;
-
-            for (int i = 0; i < count; i++)
+            if (sales.Count() != 0)
             {
-                dates[i] = dates[0].AddDays(i);
-                countDate[i] = sales.Where(c=>c.dateSale==dates[i]).Sum(x => x.telephones.Sum(c => c.count * c.cost));
+                int count = (DpDateEnd.SelectedDate.Value.Date - DpDateStart.SelectedDate.Value.Date).Days + 1;
+                double[] countDate = new double[count];
+                DateTime[] dates = new DateTime[count];
+                dates[0] = DpDateStart.SelectedDate.Value.Date;
+
+                for (int i = 0; i < count; i++)
+                {
+                    dates[i] = dates[0].AddDays(i);
+                    countDate[i] = sales.Where(c => c.dateSale == dates[i]).Sum(x => x.telephones.Sum(c => c.count * c.cost));
+                }
+                double[] xs = dates.Select(x => x.ToOADate()).ToArray();
+                LineChart.Plot.AddScatter(xs, countDate);
+                GridChartLine.Visibility = Visibility.Visible;
+                GridChartPie.Visibility = Visibility.Collapsed;
+                LineChart.Plot.XAxis.DateTimeFormat(true);
+
+                LineChart.Refresh();
             }
-            double[] xs = dates.Select(x => x.ToOADate()).ToArray();
-            LineChart.Plot.AddScatter(xs, countDate);
-            GridChartLine.Visibility = Visibility.Visible;
-            GridChartPie.Visibility = Visibility.Collapsed;
-            LineChart.Plot.XAxis.DateTimeFormat(true);
-    
-            LineChart.Refresh();
+
+             
         }
     }
 }

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Srez"
       
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1000">
+        Title="Покупки" Height="700" Width="1000">
     <Grid Background="#fff5f5">
         <Grid.RowDefinitions>
             <RowDefinition Height="100"></RowDefinition>
@@ -64,11 +64,11 @@
             <Border Width="200" Height="100" BorderBrush="Black" BorderThickness="1">
                 <Grid  Background="White">
                     <Grid >
-                        <Button Width="50" Height="50" HorizontalAlignment="Left"  Margin="20 0 0 0" x:Name="BtnCheque" Click="BtnCheque_Click">
-                            <Image Source="res/WordIcon.png"></Image>
+                        <Button Style="{DynamicResource ButtonStyle2}" Width="50" Height="50" HorizontalAlignment="Left"  Margin="20 0 0 0" x:Name="BtnCheque" Click="BtnCheque_Click">
+                            <Image Source="/res/WordIcon.png"></Image>
                         </Button>
-                        <Button HorizontalAlignment="Right" Width="50" Height="50" Margin="0 0 20 0" x:Name="BtnChequeExcel" Click="BtnChequeExcel_Click">
-                            <Image Source="res/ExcelIcon.png"></Image>
+                        <Button  Style="{DynamicResource ButtonStyle2}" HorizontalAlignment="Right" Width="50" Height="50" Margin="0 0 20 0" x:Name="BtnChequeExcel" Click="BtnChequeExcel_Click">
+                            <Image Source="/res/ExcelIcon.png"></Image>
                         </Button>
                     </Grid>
                 </Grid>
@@ -80,11 +80,11 @@
             <Border Width="200" Height="100" BorderBrush="Black" BorderThickness="1">
                 <Grid  Background="White">
                     <Grid >
-                        <Button Width="50" Height="50" HorizontalAlignment="Left"  Margin="20 0 0 0" x:Name="BtnReportWord" Click="BtnReportWord_Click">
-                            <Image Source="res/WordIcon.png"></Image>
+                        <Button  Style="{DynamicResource ButtonStyle2}" Width="50" Height="50" HorizontalAlignment="Left"  Margin="20 0 0 0" x:Name="BtnReportWord" Click="BtnReportWord_Click">
+                            <Image Source="/res/WordIcon.png"></Image>
                         </Button>
-                        <Button HorizontalAlignment="Right" Width="50" Height="50" Margin="0 0 20 0"  x:Name="BtnReportExcel" Click="BtnReportExcel_Click" >
-                            <Image Source="res/ExcelIcon.png"></Image>
+                        <Button  Style="{DynamicResource ButtonStyle2}" HorizontalAlignment="Right" Width="50" Height="50" Margin="0 0 20 0"  x:Name="BtnReportExcel" Click="BtnReportExcel_Click" >
+                            <Image Source="/res/ExcelIcon.png"></Image>
                         </Button>
                     </Grid>
                 </Grid>

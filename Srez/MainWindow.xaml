@@ -1,0 +1,94 @@
+﻿<Window x:Class="Srez.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Srez"
+      
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="1000">
+    <Grid Background="#fff5f5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="100"></RowDefinition>
+            <RowDefinition Height="300"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="650"></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid Margin="20 0 0 0" >
+            <StackPanel Width="150" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <TextBlock Text="Дата начала"></TextBlock>
+                <DatePicker x:Name="DpDateStart"></DatePicker>
+            </StackPanel>
+            <StackPanel Width="150" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Дата окончания"></TextBlock>
+                <DatePicker x:Name="DpDateEnd"/>
+            </StackPanel>
+
+            <Button Style="{DynamicResource ButtonStyle1}" Background="#fea6a6" x:Name="BtnGetData" Click="BtnGetData_Click"  HorizontalAlignment="Right" Content="Получить" Width="130" Height="30"  ></Button>
+
+        </Grid>
+        <DataGrid VerticalAlignment="Top" Margin="20 20 0 0" Grid.Row="1" Width="630" Height="250" x:Name="DgSale" CanUserAddRows="False"  AutoGenerateColumns="False" >
+            <DataGrid.Columns>
+                <DataGridTextColumn Width="620" Binding="{Binding client.fullname, Mode=OneWay}"></DataGridTextColumn>
+            </DataGrid.Columns>
+            <DataGrid.RowDetailsTemplate>
+                <DataTemplate>
+                    <DataGrid ItemsSource="{Binding telephones}" CanUserAddRows="False" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Артикул" Binding="{Binding articul}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Производитель" Binding="{Binding manufacturer}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Наименование" Binding="{Binding nameTelephone}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding count}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Цена" Binding="{Binding cost}"></DataGridTextColumn>
+                       
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DataTemplate>
+            </DataGrid.RowDetailsTemplate>
+        </DataGrid>
+        <ComboBox Grid.Row="2" Width="150" Height="30" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="20 0 0 0">
+            <ComboBoxItem Content="Фирмы" x:Name="CbiBrand" Selected="CbiBrand_Selected" ></ComboBoxItem>
+            <ComboBoxItem Content="Продажи" x:Name="CbiSales" Selected="CbiSales_Selected"></ComboBoxItem>
+        </ComboBox>
+        <Grid Visibility="Collapsed" Grid.Row="2" Width="400" HorizontalAlignment="Right" x:Name="GridChartPie">
+            <WpfPlot Name="PieChart"></WpfPlot>
+        </Grid>
+        <Grid Visibility="Collapsed" Grid.Row="2" Width="400" HorizontalAlignment="Right" x:Name="GridChartLine">
+            <WpfPlot Name="LineChart"></WpfPlot>
+        </Grid>
+        <StackPanel  Grid.Row="1" Grid.Column="1">
+            <TextBlock Text="Сформировать чек" HorizontalAlignment="Center" FontSize="16"></TextBlock>
+            <Border Width="200" Height="100" BorderBrush="Black" BorderThickness="1">
+                <Grid  Background="White">
+                    <Grid >
+                        <Button Width="50" Height="50" HorizontalAlignment="Left"  Margin="20 0 0 0" x:Name="BtnCheque" Click="BtnCheque_Click">
+                            <Image Source="res/WordIcon.png"></Image>
+                        </Button>
+                        <Button HorizontalAlignment="Right" Width="50" Height="50" Margin="0 0 20 0" x:Name="BtnChequeExcel" Click="BtnChequeExcel_Click">
+                            <Image Source="res/ExcelIcon.png"></Image>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </Border>
+        </StackPanel>
+        <StackPanel  Grid.Row="1" Grid.Column="1" VerticalAlignment="Bottom">
+            <TextBlock  HorizontalAlignment="Center" FontSize="16">Сформировать</TextBlock>
+            <TextBlock  HorizontalAlignment="Center" FontSize="16">отчетность</TextBlock>
+            <Border Width="200" Height="100" BorderBrush="Black" BorderThickness="1">
+                <Grid  Background="White">
+                    <Grid >
+                        <Button Width="50" Height="50" HorizontalAlignment="Left"  Margin="20 0 0 0" x:Name="BtnReportWord" Click="BtnReportWord_Click">
+                            <Image Source="res/WordIcon.png"></Image>
+                        </Button>
+                        <Button HorizontalAlignment="Right" Width="50" Height="50" Margin="0 0 20 0"  x:Name="BtnReportExcel" Click="BtnReportExcel_Click" >
+                            <Image Source="res/ExcelIcon.png"></Image>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Srez", "Srez\Srez.csproj", "{FD33AF87-83A3-479C-A718-6787DFEA2283}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FD33AF87-83A3-479C-A718-6787DFEA2283}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD33AF87-83A3-479C-A718-6787DFEA2283}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD33AF87-83A3-479C-A718-6787DFEA2283}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD33AF87-83A3-479C-A718-6787DFEA2283}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C0D22DC1-A880-4F98-B8AF-9B8B8925BF5D}
+	EndGlobalSection
+EndGlobal
